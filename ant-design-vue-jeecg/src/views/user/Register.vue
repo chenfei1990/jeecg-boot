@@ -247,13 +247,13 @@
               phone: values.mobile,
               smscode: values.captcha
             };
-            postAction("/sys/user/register", register).then((res) => {
-              if (!res.success) {
-                this.registerFailed(res.message)
-              } else {
-                this.$router.push({name: 'registerResult', params: {...values}})
-              }
-            })
+            // postAction("/sys/user/register", register).then((res) => {
+            //   if (!res.success) {
+            //     this.registerFailed(res.message)
+            //   } else {
+            //     this.$router.push({name: 'registerResult', params: {...values}})
+            //   }
+            // })
           }
         })
       },
