@@ -22,6 +22,7 @@
 		<module>jeecg-boot-module-system</module>
 		<module>jeecg-boot-module-demo</module>
 		<module>jeecg-cloud-module</module>
+		<module>jeecg-boot-module-inout</module>
 	</modules>
 
 	<distributionManagement>
@@ -122,6 +123,7 @@
 				<artifactId>jeecg-system-cloud-api</artifactId>
 				<version>${jeecgboot.version}</version>
 			</dependency>
+
 
 			<!-- 七牛云SDK -->
 			<dependency>
