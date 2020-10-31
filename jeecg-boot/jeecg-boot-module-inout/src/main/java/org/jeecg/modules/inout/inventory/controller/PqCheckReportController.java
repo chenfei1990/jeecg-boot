@@ -126,7 +126,7 @@ public class PqCheckReportController extends JeecgController<PqCheckReport, IPqC
 	  */
 	 @AutoLog(value = "盘点报告-通过id完成录入")
 	 @ApiOperation(value="盘点报告-通过id完成录入", notes="盘点报告-通过id完成录入")
-	 @DeleteMapping(value = "/finishWrite")
+	 @GetMapping(value = "/finishWrite")
 	 public Result<?> finishWrite(@RequestParam(name="id",required=true) String id) {
 		 //pqCheckReportService.delMain(id);
 		 OnlCgformFieldMapper onlCgformFieldMapper = SpringContextUtils.getBean(OnlCgformFieldMapper.class);
@@ -136,6 +136,26 @@ public class PqCheckReportController extends JeecgController<PqCheckReport, IPqC
 		 params.put("p_id",id);
 		 onlCgformFieldMapper.executeUpdatetSQL(params);
 		 return Result.OK("录入完成!");
+
+	 }
+
+	 /**
+	  * 通过id审核
+	  * @param id
+	  * @return
+	  */
+	 @AutoLog(value = "盘点报告-通过id审核")
+	 @ApiOperation(value="盘点报告-通过id审核", notes="盘点报告-通过id审核")
+	 @GetMapping(value = "/audit")
+	 public Result<?> audit(@RequestParam(name="id",required=true) String id) {
+		 //pqCheckReportService.delMain(id);
+		 OnlCgformFieldMapper onlCgformFieldMapper = SpringContextUtils.getBean(OnlCgformFieldMapper.class);
+		 Map<String,Object> params = new HashMap<>();
+		 String sql = " call audit_report(#{p_id,jdbcType=VARCHAR})";
+		 params.put("execute_sql_string",sql);
+		 params.put("p_id",id);
+		 onlCgformFieldMapper.executeUpdatetSQL(params);
+		 return Result.OK("审核完成!");
 
 	 }
 

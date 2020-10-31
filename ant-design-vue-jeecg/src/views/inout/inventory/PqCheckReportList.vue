@@ -43,6 +43,9 @@
       <a-button type="primary" icon="check" @click="handleFinish" 
       v-bind:disabled=" !(selectedRowKeys.length > 0 && selectionRows[0].status == 0)">录入完成</a-button>
 
+      <a-button type="primary" icon="audit" @click="handleAudit"
+      v-bind:disabled=" !(selectedRowKeys.length > 0 && selectionRows[0].status == 1)">审核盘点表</a-button>
+
     </div>
 
     <!-- table区域-begin -->
@@ -121,7 +124,7 @@
 
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import PqCheckReportModal from './modules/PqCheckReportModal'
-  import { getAction,deleteAction } from '@/api/manage'
+  import { getAction } from '@/api/manage'
   import PqCheckReportSpList from './PqCheckReportSpList'
   import JDate from '@/components/jeecg/JDate.vue'
   import {initDictOptions,filterMultiDictText} from '@/components/dict/JDictSelectUtil'
@@ -199,6 +202,7 @@
           exportXlsUrl: "/inventory/pqCheckReport/exportXls",
           importExcelUrl: "inventory/pqCheckReport/importExcel",
           finishUrl: "inventory/pqCheckReport/finishWrite",
+          auditUrl: "inventory/pqCheckReport/audit",
         },
         dictOptions:{
          kcdd:[],
@@ -236,14 +240,35 @@
         }
         else{
           
-          console.log(this.selectionRows[0].id)
           if(!this.url.finishUrl){
             this.$message.error("请设置url.finish属性!")
             return
           }
-          deleteAction(this.url.finishUrl, {id: this.selectionRows[0].id}).then((res) => {
+          getAction(this.url.finishUrl, {id: this.selectionRows[0].id}).then((res) => {
           if (res.success) {
             this.$message.success(res.message);
+            this.loadData();
+          } else {
+            this.$message.warning(res.message);
+          }
+          });
+
+        }
+      },
+
+      handleAudit(){
+        if(this.selectedRowKeys.length == 0){
+          this.$message.warning("请选择盘点报告");
+        }
+        else{
+          
+          if(!this.url.auditUrl){
+            this.$message.error("请设置url.audit属性!")
+            return
+          }
+          getAction(this.url.auditUrl, {id: this.selectionRows[0].id}).then((res) => {
+          if (res.success) {
+            this.$message.success(res.result);
             this.loadData();
           } else {
             this.$message.warning(res.message);
