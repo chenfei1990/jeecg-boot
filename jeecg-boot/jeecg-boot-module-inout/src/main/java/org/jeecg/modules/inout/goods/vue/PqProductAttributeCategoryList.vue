@@ -4,33 +4,6 @@
     <div class="table-page-search-wrapper">
       <a-form layout="inline" @keyup.enter.native="searchQuery">
         <a-row :gutter="24">
-          <a-col :xl="6" :lg="7" :md="8" :sm="24">
-            <a-form-item label="商品名称">
-              <a-input placeholder="请输入商品名称" v-model="queryParam.name"></a-input>
-            </a-form-item>
-          </a-col>
-          <a-col :xl="6" :lg="7" :md="8" :sm="24">
-            <a-form-item label="分类">
-              <a-input placeholder="请输入分类" v-model="queryParam.goodsTypeId"></a-input>
-            </a-form-item>
-          </a-col>
-          <template v-if="toggleSearchStatus">
-            <a-col :xl="6" :lg="7" :md="8" :sm="24">
-              <a-form-item label="商品条码">
-                <a-input placeholder="请输入商品条码" v-model="queryParam.barcode"></a-input>
-              </a-form-item>
-            </a-col>
-          </template>
-          <a-col :xl="6" :lg="7" :md="8" :sm="24">
-            <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
-              <a-button type="primary" @click="searchQuery" icon="search">查询</a-button>
-              <a-button type="primary" @click="searchReset" icon="reload" style="margin-left: 8px">重置</a-button>
-              <a @click="handleToggleSearch" style="margin-left: 8px">
-                {{ toggleSearchStatus ? '收起' : '展开' }}
-                <a-icon :type="toggleSearchStatus ? 'up' : 'down'"/>
-              </a>
-            </span>
-          </a-col>
         </a-row>
       </a-form>
     </div>
@@ -39,7 +12,7 @@
     <!-- 操作按钮区域 -->
     <div class="table-operator">
       <a-button @click="handleAdd" type="primary" icon="plus">新增</a-button>
-      <a-button type="primary" icon="download" @click="handleExportXls('商品信息')">导出</a-button>
+      <a-button type="primary" icon="download" @click="handleExportXls('商品属性分类表')">导出</a-button>
       <a-upload name="file" :showUploadList="false" :multiple="false" :headers="tokenHeader" :action="importExcelUrl" @change="handleImportExcel">
         <a-button type="primary" icon="import">导入</a-button>
       </a-upload>
@@ -91,9 +64,6 @@
             下载
           </a-button>
         </template>
-        <template slot="pcaSlot" slot-scope="text">
-          <div>{{ getPcaText(text) }}</div>
-        </template>
 
         <span slot="action" slot-scope="text, record">
           <a @click="handleEdit(record)">编辑</a>
@@ -117,27 +87,25 @@
       </a-table>
     </div>
 
-    <pq-goods-modal ref="modalForm" @ok="modalFormOk"/>
+    <pq-product-attribute-category-modal ref="modalForm" @ok="modalFormOk"/>
   </a-card>
 </template>
 
 <script>
 
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import PqGoodsModal from './modules/PqGoodsModal'
-  import {filterMultiDictText} from '@/components/dict/JDictSelectUtil'
-  import Area from '@/components/_util/Area'
+  import PqProductAttributeCategoryModal from './modules/PqProductAttributeCategoryModal'
   import '@/assets/less/TableExpand.less'
 
   export default {
-    name: "PqGoodsList",
+    name: "PqProductAttributeCategoryList",
     mixins:[JeecgListMixin],
     components: {
-      PqGoodsModal
+      PqProductAttributeCategoryModal
     },
     data () {
       return {
-        description: '商品信息管理页面',
+        description: '商品属性分类表管理页面',
         // 表头
         columns: [
           {
@@ -151,76 +119,19 @@
             }
           },
           {
-            title:'商品名称',
+            title:'名称',
             align:"center",
             dataIndex: 'name'
           },
           {
-            title:'简称',
+            title:'属性数量',
             align:"center",
-            dataIndex: 'jc'
+            dataIndex: 'attributeCount'
           },
           {
-            title:'分类',
+            title:'参数数量',
             align:"center",
-            dataIndex: 'goodsTypeId_dictText'
-          },
-          {
-            title:'进项税率（%）',
-            align:"center",
-            dataIndex: 'jxsl_dictText'
-          },
-          {
-            title:'销项税率（%）',
-            align:"center",
-            dataIndex: 'xssl_dictText'
-          },
-          {
-            title:'关税税率（%）',
-            align:"center",
-            dataIndex: 'gssl'
-          },
-          {
-            title:'商品条码',
-            align:"center",
-            dataIndex: 'barcode'
-          },
-          {
-            title:'多规格',
-            align:"center",
-            dataIndex: 'sepcification_dictText'
-          },
-          {
-            title:'属性分类',
-            align:"center",
-            dataIndex: 'productAttributeCategoryId_dictText'
-          },
-          {
-            title:'单位',
-            align:"center",
-            dataIndex: 'unit'
-          },
-          {
-            title:'税收分类',
-            align:"center",
-            dataIndex: 'taxId'
-          },
-          {
-            title:'产地',
-            align:"center",
-            dataIndex: 'place',
-            scopedSlots: {customRender: 'pcaSlot'}
-          },
-          {
-            title:'备注',
-            align:"center",
-            dataIndex: 'remark'
-          },
-          {
-            title:'图片',
-            align:"center",
-            dataIndex: 'pic',
-            scopedSlots: {customRender: 'imgSlot'}
+            dataIndex: 'paramCount'
           },
           {
             title: '操作',
@@ -232,18 +143,17 @@
           }
         ],
         url: {
-          list: "/goods/pqGoods/list",
-          delete: "/goods/pqGoods/delete",
-          deleteBatch: "/goods/pqGoods/deleteBatch",
-          exportXlsUrl: "/goods/pqGoods/exportXls",
-          importExcelUrl: "goods/pqGoods/importExcel",
+          list: "/goods/pqProductAttributeCategory/list",
+          delete: "/goods/pqProductAttributeCategory/delete",
+          deleteBatch: "/goods/pqProductAttributeCategory/deleteBatch",
+          exportXlsUrl: "/goods/pqProductAttributeCategory/exportXls",
+          importExcelUrl: "goods/pqProductAttributeCategory/importExcel",
           
         },
         dictOptions:{},
       }
     },
     created() {
-      this.pcaData = new Area()
     },
     computed: {
       importExcelUrl: function(){
@@ -251,9 +161,6 @@
       }
     },
     methods: {
-      getPcaText(code){
-        return this.pcaData.getText(code);
-      },
       initDictConfig(){
       },
        

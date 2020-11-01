@@ -4,23 +4,22 @@
     :width="1200"
     :visible="visible"
     :maskClosable="false"
-    :fullscreen="true"
     switchFullscreen
     @ok="handleOk"
     :okButtonProps="{ class:{'jee-hidden': disableSubmit} }"
     @cancel="handleCancel">
-    <pq-goods-form ref="realForm" @ok="submitCallback" :disabled="disableSubmit"/>
+    <pq-product-attribute-category-form ref="realForm" @ok="submitCallback" :disabled="disableSubmit"/>
   </j-modal>
 </template>
 
 <script>
 
-  import PqGoodsForm from './PqGoodsForm'
+  import PqProductAttributeCategoryForm from './PqProductAttributeCategoryForm'
 
   export default {
-    name: 'PqGoodsModal',
+    name: 'PqProductAttributeCategoryModal',
     components: {
-      PqGoodsForm
+      PqProductAttributeCategoryForm
     },
     data() {
       return {

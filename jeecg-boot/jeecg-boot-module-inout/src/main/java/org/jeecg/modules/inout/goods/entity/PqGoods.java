@@ -57,7 +57,8 @@ public class PqGoods implements Serializable {
     @ApiModelProperty(value = "简称")
     private java.lang.String jc;
 	/**分类*/
-	@Excel(name = "分类", width = 15)
+    @Excel(name = "分类", width = 15, dictTable = "pq_goods_type", dicText = "name", dicCode = "id")
+    @Dict(dictTable = "pq_goods_type", dicText = "name", dicCode = "id")
     @ApiModelProperty(value = "分类")
     private java.lang.String goodsTypeId;
 	/**进项税率（%）*/
