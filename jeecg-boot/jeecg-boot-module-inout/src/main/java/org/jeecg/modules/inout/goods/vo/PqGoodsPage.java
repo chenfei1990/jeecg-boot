@@ -108,6 +108,12 @@ public class PqGoodsPage {
 	@ApiModelProperty(value = "图片")
 	private java.lang.String pic;
 
+	/**商品状态*/
+	@Excel(name = "商品状态", width = 15, dicCode = "pq_goods_stats")
+	@Dict(dicCode = "pq_goods_stats")
+	@ApiModelProperty(value = "商品状态")
+	private java.lang.Integer status;
+
 	@ExcelCollection(name="商品SKU信息")
 	@ApiModelProperty(value = "商品SKU信息")
 	private List<PqGoodsSku> pqGoodsSkuList;

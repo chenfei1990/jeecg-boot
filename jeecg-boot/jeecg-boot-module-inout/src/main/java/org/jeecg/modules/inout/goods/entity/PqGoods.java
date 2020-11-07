@@ -109,4 +109,9 @@ public class PqGoods implements Serializable {
 	@Excel(name = "图片", width = 15)
     @ApiModelProperty(value = "图片")
     private java.lang.String pic;
+    /**商品状态*/
+    @Excel(name = "商品状态", width = 15, dicCode = "pq_goods_stats")
+    @Dict(dicCode = "pq_goods_stats")
+    @ApiModelProperty(value = "商品状态")
+    private java.lang.Integer status;
 }

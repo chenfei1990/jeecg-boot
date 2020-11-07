@@ -9,8 +9,14 @@
 			 goods_id = #{mainId} 	</delete>
 	
 	<select id="selectByMainId" parameterType="java.lang.String" resultType="org.jeecg.modules.inout.goods.entity.PqProductAttributeValue">
-		SELECT * 
-		FROM  pq_product_attribute_value
-		WHERE
-			 goods_id = #{mainId} 	</select>
+	SELECT a.`id`, a.`create_by`, a.`create_time`, a.`update_by`, a.`update_time`,
+	a.`sys_org_code`, a.`goods_id`,  a.`value`,z.id as product_attribute_id
+	,z.`name`,z.input_type,z.input_list FROM
+	(SELECT g.id as gid,b.* from pq_goods g ,pq_product_attribute_category t ,
+	pq_product_attribute b
+	where g.id = #{mainId}  and g.product_attribute_category_id =
+	t.id and b.type =1 and b.product_attribute_category_id = t.id
+	) z LEFT JOIN pq_product_attribute_value a  on
+	( a.product_attribute_id = z.id and a.goods_id = z.gid)
+	</select>
 </mapper>

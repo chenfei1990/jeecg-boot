@@ -58,4 +58,17 @@ public class PqProductAttributeValue implements Serializable {
 	@Excel(name = "参数值", width = 15)
 	@ApiModelProperty(value = "参数值")
 	private java.lang.String value;
+
+	/**属性名称*/
+	@ApiModelProperty(value = "属性名称")
+	private java.lang.String name;
+
+	/**输入类型*/
+	@ApiModelProperty(value = "输入类型")
+	private java.lang.Integer inputType;
+
+	/**列表值*/
+	@ApiModelProperty(value = "列表值")
+	private java.lang.String inputList;
+
 }

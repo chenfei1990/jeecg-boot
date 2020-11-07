@@ -11,16 +11,32 @@
           </a-col>
           <a-col :xl="6" :lg="7" :md="8" :sm="24">
             <a-form-item label="分类">
-              <a-input placeholder="请输入分类" v-model="queryParam.goodsTypeId"></a-input>
+              <!-- <a-input placeholder="请输入分类" v-model="queryParam.goodsTypeId"></a-input> -->
+
+              <j-tree-select
+                placeholder="请选择分类"
+                v-model="queryParam.goodsTypeId"
+                dict="pq_goods_type,name,id"
+                pidField="pid"
+                pidValue="0"
+              />
+
             </a-form-item>
           </a-col>
-          <template v-if="toggleSearchStatus">
-            <a-col :xl="6" :lg="7" :md="8" :sm="24">
+          <a-col :xl="6" :lg="7" :md="8" :sm="24">
+              <a-form-item label="商品状态">
+                <j-dict-select-tag placeholder="请选择商品状态" v-model="queryParam.status" dictCode="pq_goods_stats"/>
+              </a-form-item>
+          </a-col>
+
+          <a-col :xl="6" :lg="7" :md="8" :sm="24">
               <a-form-item label="商品条码">
                 <a-input placeholder="请输入商品条码" v-model="queryParam.barcode"></a-input>
               </a-form-item>
-            </a-col>
-          </template>
+          </a-col>
+          <!-- <template v-if="toggleSearchStatus">
+            
+          </template> -->
           <a-col :xl="6" :lg="7" :md="8" :sm="24">
             <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
               <a-button type="primary" @click="searchQuery" icon="search">查询</a-button>
@@ -39,16 +55,18 @@
     <!-- 操作按钮区域 -->
     <div class="table-operator">
       <a-button @click="handleAdd" type="primary" icon="plus">新增</a-button>
-      <a-button type="primary" icon="download" @click="handleExportXls('商品信息')">导出</a-button>
+      <a-button @click="handleAudit" type="primary" icon="check">审核</a-button>
+      <a-button @click="handleTaotai" type="primary" icon="close">淘汰</a-button>
+      <!-- <a-button type="primary" icon="download" @click="handleExportXls('商品信息')">导出</a-button>
       <a-upload name="file" :showUploadList="false" :multiple="false" :headers="tokenHeader" :action="importExcelUrl" @change="handleImportExcel">
         <a-button type="primary" icon="import">导入</a-button>
-      </a-upload>
-      <a-dropdown v-if="selectedRowKeys.length > 0">
+      </a-upload> -->
+      <!-- <a-dropdown v-if="selectedRowKeys.length > 0">
         <a-menu slot="overlay">
           <a-menu-item key="1" @click="batchDel"><a-icon type="delete"/>删除</a-menu-item>
         </a-menu>
         <a-button style="margin-left: 8px"> 批量操作 <a-icon type="down" /></a-button>
-      </a-dropdown>
+      </a-dropdown> -->
     </div>
 
     <!-- table区域-begin -->
@@ -96,7 +114,7 @@
         </template>
 
         <span slot="action" slot-scope="text, record">
-          <a @click="handleEdit(record)">编辑</a>
+          <a @click="handleEditExt(record)">编辑</a>
 
           <a-divider type="vertical" />
           <a-dropdown>
@@ -106,7 +124,7 @@
                 <a @click="handleDetail(record)">详情</a>
               </a-menu-item>
               <a-menu-item>
-                <a-popconfirm title="确定删除吗?" @confirm="() => handleDelete(record.id)">
+                <a-popconfirm title="确定删除吗?" @confirm="() => handleDeleteExt(record.id,record.status)">
                   <a>删除</a>
                 </a-popconfirm>
               </a-menu-item>
@@ -125,15 +143,18 @@
 
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import PqGoodsModal from './modules/PqGoodsModal'
+  import { deleteAction,getAction } from '@/api/manage'
   import {filterMultiDictText} from '@/components/dict/JDictSelectUtil'
   import Area from '@/components/_util/Area'
   import '@/assets/less/TableExpand.less'
+  import JTreeSelect from '@/components/jeecg/JTreeSelect'
 
   export default {
     name: "PqGoodsList",
     mixins:[JeecgListMixin],
     components: {
-      PqGoodsModal
+      PqGoodsModal,
+      JTreeSelect
     },
     data () {
       return {
@@ -155,15 +176,20 @@
             align:"center",
             dataIndex: 'name'
           },
-          {
-            title:'简称',
-            align:"center",
-            dataIndex: 'jc'
-          },
+          // {
+          //   title:'简称',
+          //   align:"center",
+          //   dataIndex: 'jc'
+          // },
           {
             title:'分类',
             align:"center",
             dataIndex: 'goodsTypeId_dictText'
+          },
+          {
+            title:'商品状态',
+            align:"center",
+            dataIndex: 'status_dictText'
           },
           {
             title:'进项税率（%）',
@@ -195,6 +221,7 @@
             align:"center",
             dataIndex: 'productAttributeCategoryId_dictText'
           },
+       
           {
             title:'单位',
             align:"center",
@@ -222,6 +249,7 @@
             dataIndex: 'pic',
             scopedSlots: {customRender: 'imgSlot'}
           },
+          
           {
             title: '操作',
             dataIndex: 'action',
@@ -237,7 +265,7 @@
           deleteBatch: "/goods/pqGoods/deleteBatch",
           exportXlsUrl: "/goods/pqGoods/exportXls",
           importExcelUrl: "goods/pqGoods/importExcel",
-          
+          auditUrl: "goods/pqGoods/audit",
         },
         dictOptions:{},
       }
@@ -256,6 +284,100 @@
       },
       initDictConfig(){
       },
+      handleAudit(){
+        if(this.selectedRowKeys.length == 0){
+          this.$message.warning("请选择商品");
+        }
+        else{
+          
+          if(!this.url.auditUrl){
+            this.$message.error("请设置url.audit属性!")
+            return
+          }
+
+          if( this.selectionRows[0].status == 1) {
+            this.$message.error("该商品已审核，请勿重复审核!")
+            return
+          }
+
+          getAction(this.url.auditUrl, {id: this.selectionRows[0].id}).then((res) => {
+          if (res.success) {
+            this.$message.success(res.result);
+            this.loadData();
+          } else {
+            this.$message.warning(res.message);
+          }
+          });
+
+        }
+    },
+
+
+     handleTaotai(){
+      if(this.selectedRowKeys.length == 0){
+        this.$message.warning("请选择商品");
+        return;
+      }
+       this.$message.warning("该功能暂未开放！");
+        // if(this.selectedRowKeys.length == 0){
+        //   this.$message.warning("请选择商品");
+        // }
+        // else{
+          
+        //   if(!this.url.auditUrl){
+        //     this.$message.error("请设置url.audit属性!")
+        //     return
+        //   }
+
+        //   if( this.selectionRows[0].status == 1) {
+        //     this.$message.error("该商品已审核，请勿重复审核!")
+        //     return
+        //   }
+
+        //   getAction(this.url.auditUrl, {id: this.selectionRows[0].id}).then((res) => {
+        //   if (res.success) {
+        //     this.$message.success(res.result);
+        //     this.loadData();
+        //   } else {
+        //     this.$message.warning(res.message);
+        //   }
+        //   });
+
+        // }
+    },
+
+
+    
+
+    handleDeleteExt: function (id,status) {
+      if(!this.url.delete){
+        this.$message.error("请设置url.delete属性!")
+        return
+      }
+      if(status == 1) {
+        this.$message.error("该商品已审核，无法删除!")
+        return
+      }
+      var that = this;
+      deleteAction(that.url.delete, {id: id}).then((res) => {
+        if (res.success) {
+          that.$message.success(res.message);
+          that.loadData();
+        } else {
+          that.$message.warning(res.message);
+        }
+      });
+    },
+
+    handleEditExt: function (record) {
+      if(record.status == 1) {
+        this.$message.error("该商品已审核，无法编辑!")
+        return
+      }
+      this.$refs.modalForm.edit(record);
+      this.$refs.modalForm.title = "编辑";
+      this.$refs.modalForm.disableSubmit = false;
+    },
        
     }
   }

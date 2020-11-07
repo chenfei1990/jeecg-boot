@@ -3,15 +3,14 @@ package org.jeecg.modules.inout.goods.controller;
 import java.io.UnsupportedEncodingException;
 import java.io.IOException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeecg.common.util.SpringContextUtils;
+import org.jeecg.modules.online.cgform.mapper.OnlCgformFieldMapper;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.def.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -193,7 +192,29 @@ public class PqGoodsController {
 		return Result.OK(pqProductAttributeValueList);
 	}
 
-    /**
+
+	 /**
+	  * 通过id审核
+	  * @param id
+	  * @return
+	  */
+	 @AutoLog(value = "商品定义-通过id审核")
+	 @ApiOperation(value="商品定义-通过id审核", notes="商品定义-通过id审核")
+	 @GetMapping(value = "/audit")
+	 public Result<?> audit(@RequestParam(name="id",required=true) String id) {
+		 //pqCheckReportService.delMain(id);
+		 OnlCgformFieldMapper onlCgformFieldMapper = SpringContextUtils.getBean(OnlCgformFieldMapper.class);
+		 Map<String,Object> params = new HashMap<>();
+		 String sql = " call goods_audit(#{p_id,jdbcType=VARCHAR})";
+		 params.put("execute_sql_string",sql);
+		 params.put("p_id",id);
+		 onlCgformFieldMapper.executeUpdatetSQL(params);
+		 return Result.OK("审核完成!");
+
+	 }
+
+
+	 /**
     * 导出excel
     *
     * @param request

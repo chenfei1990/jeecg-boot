@@ -3,7 +3,7 @@
     <j-form-container :disabled="formDisabled">
       <!-- 主表单区域 -->
       <a-form :form="form" slot="detail">
-        <a-row>
+        <a-row :gutter="24">
           <a-col :span="8" >
             <a-form-item label="商品名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
               <a-input v-decorator="['name', validatorRules.name]" placeholder="请输入商品名称"></a-input>
@@ -91,7 +91,7 @@
             </a-form-item>
           </a-col>
 
-          <a-col :span="24" v-show="showMulGuiGe == 1">
+          <!-- <a-col :span="24" v-show="showMulGuiGe == 1 && selectProductAttr.length > 0">
             <div style="background:#ECECEC; padding:40px">
               <a-card   title="商品规格" :bordered="false" >
 
@@ -103,12 +103,7 @@
                     同步价格
                   </a-button>
                </a-button-group>
-               <a-form-item v-for="(productAttr,idx) in selectProductAttr" :label="productAttr.name">
-                <!-- <j-checkbox
-                v-model="jcheckbox.values"
-                :options="jcheckbox.options"
-                /> -->
-                
+               <a-form-item v-for="(productAttr,idx) in selectProductAttr" :label="productAttr.name">         
                 <a-checkbox-group
                   v-model="productAttr.values"
                   :options="productAttr.options"
@@ -118,22 +113,50 @@
               </a-card>
             </div>
 
-          </a-col>
-
-           <!-- <a-col :span="24" v-show="showMulGuiGe == 1">
-            <div style="background:#ECECEC; padding:0px 40px 40px">
-              <a-card title="商品参数" :bordered="true" >
-               
-              </a-card>
-            </div>
-
           </a-col> -->
 
+
+    
         </a-row>
+
+
+        <a-row :gutter="24" style="background:#ECECEC; padding:40px" v-show="showMulGuiGe == 1 && selectProductAttr.length > 0">
+            <a-card   title="商品规格" :bordered="false" >      
+               <a-button-group  slot="extra">
+                  <a-button  type="danger" @click="handleRefreshProductSkuList">
+                    刷新列表
+                  </a-button>
+                  <a-button  type="primary" @click="handleSetPrice">
+                    同步价格
+                  </a-button>
+               </a-button-group>
+               <a-form-item v-for="(productAttr,idx) in selectProductAttr" :label="productAttr.name">
+                <a-checkbox-group
+                  v-model="productAttr.values"
+                  :options="productAttr.options"
+                />
+              </a-form-item> 
+            </a-card>
+        </a-row>
+
+
+        <a-row :gutter="24" style="background:#ECECEC; padding:0px 40px 40px" v-show="showMulGuiGe == 1 && selectProductParam.length > 0">
+            <a-card title="商品参数" :bordered="false" >      
+              <a-col :span="6" v-for="(item,index) in selectProductParam">
+                <a-form-item  :label="item.name">
+                  <j-select-multiple  v-if="item.inputType===1" v-model="item.value" :options="item.options"/>
+                  <a-input v-else v-model="item.value"></a-input>
+                </a-form-item>
+              </a-col>
+            </a-card>
+        </a-row>
+
+       
+
       </a-form>
     </j-form-container>
       <!-- 子表单区域 -->
-    <a-tabs v-model="activeKey" @change="handleChangeTabs">
+    <a-tabs  v-model="activeKey" @change="handleChangeTabs">
       <a-tab-pane tab="商品SKU信息" :key="refKeys[0]" :forceRender="true">
         <j-editable-table
           :ref="refKeys[0]"
@@ -180,11 +203,13 @@
   import JAreaLinkage from '@comp/jeecg/JAreaLinkage'
   import JCheckbox from '@/components/jeecg/JCheckbox'
   import JTreeSelect from '@/components/jeecg/JTreeSelect'
+  import JSelectMultiple from '@/components/jeecg/JSelectMultiple'
 
   export default {
     name: 'PqGoodsForm',
     mixins: [JEditableTableMixin],
     components: {
+      JSelectMultiple,
       JFormContainer,
       JImageUpload,
       JDictSelectTag,
@@ -195,6 +220,16 @@
     },
     data() {
       return {
+
+        jselectMultiple: {
+          options: [
+            { text: '字符串', value: 'String' },
+            { text: '整数型', value: 'Integer' },
+            { text: '浮点型', value: 'Double' },
+            { text: '布尔型', value: 'Boolean' }
+          ],
+          value: 'Integer,Boolean'
+        },
         //选中的商品属性
         selectProductAttr: [],
         //选中的商品参数
@@ -267,15 +302,14 @@
               defaultValue: '',
               validateRules: [{ required: true, message: '${title}不能为空' }],
             },
-            // {
-            //   title: '规格值',
-            //   key: 'specsVal',
-            //   type: FormTypes.input,
-            //   // dictCode:"pq_type_specs_val,value,value",
-            //   width:"250px",
-            //   placeholder: '请输入${title}',
-            //   defaultValue: '',
-            // },
+            {
+              title: '规格值',
+              key: 'specsVal',
+              type: FormTypes.input,
+              width:"250px",
+              placeholder: '请输入${title}',
+              disabled:true,
+            },
             {
               title: 'SKU条码',
               key: 'skuCode',
@@ -369,32 +403,6 @@
         }
       }
     },
-
-    // watch: {
-    //   selectProductAttr(val) {
-    //     if(this.model.id){
-
-    //     }
-    //     else {
-    //       console.log('执行了');
-    //       this.pqGoodsSkuTable.autoColumns = [];
-    //       for (let x = 0; x < val.length; x++) {
-    //         let elt = val[x];
-    //         this.pqGoodsSkuTable.autoColumns.push({
-    //             title: elt.name,
-    //             key: elt.name,
-    //             type: FormTypes.input,
-    //             width:"100px",
-    //             disabled:true
-    //           }); //动态添加表头
-            
-    //       } //两个素组加起来
-    //     // this.pqGoodsSkuTable.autoColumns.concat(this.pqGoodsSkuTable.columns);
-        
-    //     }
-        
-    //   }
-    // },
 
     props: {
       //流程表单data
@@ -552,9 +560,9 @@
               let skname = this.form.getFieldValue('name');
               skname = skname + '（' + specs.join('，') + '）';
               r.name = skname; //sku名称
+              r.specsVal = specs.join(',');
               this.pqGoodsSkuTable.dataSource.push(r); // 直接加就能显示
-             
-
+                        
           }
 
       },
@@ -563,15 +571,21 @@
 
       
 
-      getProductAttrList(type,cid,success){
+      getProductAttrList(type,cid,mainId,success){
         let params = {id:cid};
         getAction(this.url.queryProductAttr,params).then((res)=>{
           if(res.success){
             let list = res.result;
             if(type == 0) {
               //规格的
-               this.selectProductAttr = [];
+              this.selectProductAttr = [];
+              //参数 
+              if(!mainId)  this.selectProductParam = []; 
+
                for (let i =0 ; i < list.length; i++ ){
+                
+                 //此处判断 类型
+                 if(list[i].type === 0) {
                   let options = [];
                   let values = [];
                   options = this.getAttrValueOptions(list[i].inputList);
@@ -583,10 +597,26 @@
                     values: values,
                     options: options
                   }); 
-                  
-              }
-            }
+                 } else {
+                    
+                    if(!mainId) {
 
+                      let value = '';
+                      let options = this.getAttrValueOptions(list[i].inputList);
+                      // 规格的
+                      this.selectProductParam.push({
+                        id: list[i].id,
+                        name: list[i].name,
+                        inputType: list[i].inputType,
+                        inputList: list[i].inputList,
+                        options: options,
+                        value : value 
+                      });
+                    }
+                 }
+            
+              }
+            } 
             typeof success === 'function' ? success(res) : '' ; //执行回调
 
           }
@@ -596,6 +626,9 @@
 
       getAttrValueOptions(v){
         let options = [];
+
+        if(!v) return options;
+
         let vl = v.split(',');
 
         for(let i = 0 ; i< vl.length;i++){
@@ -614,11 +647,14 @@
       },
 
       addBefore(){
+        // 进入页面的时候
         this.selectProductAttr = [];
+        this.selectProductParam = [];
         this.showMulGuiGe = 0;
         this.form.resetFields()
         this.pqGoodsSkuTable.dataSource=[];
-        //this.pqProductAttributeValueTable.dataSource=[]
+        this.pqProductAttributeValueTable.dataSource=[]; //清空
+         this.pqGoodsSkuTable.autoColumns = []; 
       },
       getAllTable() {
         
@@ -634,10 +670,11 @@
         })
         // 加载子表数据
         if (this.model.id) {
-          let params = { id: this.model.id }
+          let params = { id: this.model.id };
           //可以执行回调
-          this.requestSubTableData(this.url.pqGoodsSku.list, params, this.pqGoodsSkuTable,this.editShow)
-         // this.requestSubTableData(this.url.pqProductAttributeValue.list, params, this.pqProductAttributeValueTable)
+          this.requestSubTableData(this.url.pqGoodsSku.list, params, this.pqGoodsSkuTable,this.editShow);
+          // this.requestSubTableData(this.url.pqProductAttributeValue.list,
+          //  params, this.pqProductAttributeValueTable,this.editShowVal);
         }      
       },
 
@@ -647,11 +684,38 @@
           //需要展示 多规格属性,编辑或者展示详情
           this.MulGuiGeChange(this.model.sepcification);   
           //没判断是否成功   
-          this.getProductAttrList(0, this.model.productAttributeCategoryId,this.editShowAutoColunm); //展示 规则等数据 conlumn已经完成  
+          this.getProductAttrList(0, this.model.productAttributeCategoryId,this.model.id,this.editShowAutoColunm); //展示 规则等数据 conlumn已经完成  
+          //用于显示商品参数
+          let params = { id: this.model.id };
+          this.requestSubTableData(this.url.pqProductAttributeValue.list,
+           params, this.pqProductAttributeValueTable,this.editShowVal);
 
         }
 
 
+      },
+      //显示参数用
+      editShowVal(res) {
+        this.selectProductParam = [];
+          const valList = res.result;
+          // debugger;
+          if(valList.length > 0) {
+
+            for (let i = 0; i < valList.length; i++) {
+              const et = valList[i];
+              const id = et.productAttributeId;
+              let options = this.getAttrValueOptions(et.inputList);
+              // 规格的
+              this.selectProductParam.push({
+                id: id,
+                name: et.name,
+                inputType: et.inputType,
+                options: options,
+                value : et.value 
+              });
+            }
+          }
+         
       },
 
       editShowAutoColunm(){
@@ -707,6 +771,7 @@
       /** 整理成formData */
       classifyIntoFormData(allValues) {
        
+      //  保存之前
         let main = Object.assign(this.model, allValues.formValue)
         let skutb = allValues.tablesValue[0].values;
 
@@ -726,12 +791,28 @@
           }
           sku.spData = JSON.stringify(data);
         }
+        
+        let valTab = {};
+        valTab.deleteIds = [];
+        valTab.values = [];
+        for (let x = 0; x < this.selectProductParam.length; x++) {
+            const p = this.selectProductParam[x]; 
+            let oneAttr = {};
+            oneAttr.productAttributeId = p.id;
+            oneAttr.value= p.value;
+            oneAttr.productAttributeName = p.name;
+            valTab.values.push(oneAttr);
+        }
+        allValues.tablesValue.push(valTab);
+
+     
 
         //需要把spData 复制
         return {
           ...main, // 展开
           pqGoodsSkuList: allValues.tablesValue[0].values,
-          //pqProductAttributeValueList: allValues.tablesValue[1].values,
+          // 加入属性tab
+          pqProductAttributeValueList: allValues.tablesValue[1].values,
         }
       },
       //渲染流程表单数据
