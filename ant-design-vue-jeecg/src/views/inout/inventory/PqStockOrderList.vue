@@ -5,15 +5,15 @@
       <a-form layout="inline" @keyup.enter.native="searchQuery">
         <a-row :gutter="24">
           <a-col :xl="6" :lg="7" :md="8" :sm="24">
-            <a-form-item label="报告编号">
-              <a-input placeholder="请输入报告编号" v-model="queryParam.reportId"></a-input>
+            <a-form-item label="供应商名称">
+              <j-popup placeholder="请选择供应商名称" v-model="queryParam.supplierName" code="supplier_rp" org-fields="id,name" dest-fields="supplier_id,supplier_name" :field="getPopupField('supplier_id,supplier_name')"/>
             </a-form-item>
           </a-col>
           <a-col :xl="10" :lg="11" :md="12" :sm="24">
-            <a-form-item label="盘点日期">
-              <j-date placeholder="请选择开始日期" class="query-group-cust" v-model="queryParam.checkDate_begin"></j-date>
+            <a-form-item label="收货时间">
+              <j-date :show-time="true" date-format="YYYY-MM-DD HH:mm:ss" placeholder="请选择开始时间" class="query-group-cust" v-model="queryParam.inDate_begin"></j-date>
               <span class="query-group-split-cust"></span>
-              <j-date placeholder="请选择结束日期" class="query-group-cust" v-model="queryParam.checkDate_end"></j-date>
+              <j-date :show-time="true" date-format="YYYY-MM-DD HH:mm:ss" placeholder="请选择结束时间" class="query-group-cust" v-model="queryParam.inDate_end"></j-date>
             </a-form-item>
           </a-col>
           <a-col :xl="6" :lg="7" :md="8" :sm="24">
@@ -34,10 +34,17 @@
     <!-- 操作按钮区域 -->
     <div class="table-operator">
       <a-button @click="handleAdd" type="primary" icon="plus">新增</a-button>
-      <a-button type="primary" icon="download" @click="handleExportXls('盘点报告')">导出</a-button>
+      <a-button @click="handleAudit" type="primary" icon="check">订单收货</a-button>
+      <!-- <a-button type="primary" icon="download" @click="handleExportXls('采购订单')">导出</a-button>
       <a-upload name="file" :showUploadList="false" :multiple="false" :headers="tokenHeader" :action="importExcelUrl" @change="handleImportExcel">
         <a-button type="primary" icon="import">导入</a-button>
       </a-upload>
+      <a-dropdown v-if="selectedRowKeys.length > 0">
+        <a-menu slot="overlay">
+          <a-menu-item key="1" @click="batchDel"><a-icon type="delete"/>删除</a-menu-item>
+        </a-menu>
+        <a-button style="margin-left: 8px"> 批量操作 <a-icon type="down" /></a-button>
+      </a-dropdown> -->
     </div>
 
     <!-- table区域-begin -->
@@ -58,8 +65,7 @@
         :dataSource="dataSource"
         :pagination="ipagination"
         :loading="loading"
-        :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange, type:'radio'}"
-        :customRow="clickThenSelect"
+        :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
         @change="handleTableChange">
 
         <template slot="htmlSlot" slot-scope="text">
@@ -83,14 +89,17 @@
         </template>
 
         <span slot="action" slot-scope="text, record">
-          <a @click="handleEdit(record)">编辑</a>
+          <a @click="handleEditExt(record)">编辑</a>
 
           <a-divider type="vertical" />
           <a-dropdown>
             <a class="ant-dropdown-link">更多 <a-icon type="down" /></a>
             <a-menu slot="overlay">
               <a-menu-item>
-                <a-popconfirm title="确定删除吗?" @confirm="() => handleDelete(record.id)">
+                <a @click="handleDetail(record)">详情</a>
+              </a-menu-item>
+              <a-menu-item>
+                <a-popconfirm title="确定删除吗?" @confirm="() => handleDeleteExt(record.id,record.status)">
                   <a>删除</a>
                 </a-popconfirm>
               </a-menu-item>
@@ -101,81 +110,73 @@
       </a-table>
     </div>
 
-    <a-tabs defaultActiveKey="1">
-      <a-tab-pane tab="盘点商品录入" key="1" >
-        <PqCheckReportSpList :mainId="selectedMainId" />
-      </a-tab-pane>
-    </a-tabs>
-
-    <pqCheckReport-modal ref="modalForm" @ok="modalFormOk"></pqCheckReport-modal>
+    <pq-stock-order-modal ref="modalForm" @ok="modalFormOk"/>
   </a-card>
 </template>
 
 <script>
 
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import PqCheckReportModal from './modules/PqCheckReportModal'
-  import { getAction } from '@/api/manage'
-  import PqCheckReportSpList from './PqCheckReportSpList'
+  import PqStockOrderModal from './modules/PqStockOrderModal'
+  import { getAction ,deleteAction} from '@/api/manage'
   import JDate from '@/components/jeecg/JDate.vue'
-  import {initDictOptions,filterMultiDictText} from '@/components/dict/JDictSelectUtil'
+  import {filterMultiDictText} from '@/components/dict/JDictSelectUtil'
   import '@/assets/less/TableExpand.less'
 
   export default {
-    name: "PqCheckReportList",
+    name: "PqStockOrderList",
     mixins:[JeecgListMixin],
     components: {
       JDate,
-      PqCheckReportSpList,
-      PqCheckReportModal
+      PqStockOrderModal
     },
     data () {
       return {
-        description: '盘点报告管理页面',
+        description: '采购订单管理页面',
         // 表头
         columns: [
           {
-            title:'报告编号',
+            title: '#',
+            dataIndex: '',
+            key:'rowIndex',
+            width:60,
             align:"center",
-            dataIndex: 'reportId'
+            customRender:function (t,r,index) {
+              return parseInt(index)+1;
+            }
           },
           {
-            title:'盘点日期',
+            title:'批次号',
             align:"center",
-            dataIndex: 'checkDate',
+            dataIndex: 'orderNo'
+          },
+          {
+            title:'供应商名称',
+            align:"center",
+            dataIndex: 'supplierName'
+          },
+          {
+            title:'库存地点',
+            align:"center",
+            dataIndex: 'storage_dictText'
+          },
+          {
+            title:'采购日期',
+            align:"center",
+            dataIndex: 'orderDate',
             customRender:function (text) {
               return !text?"":(text.length>10?text.substr(0,10):text)
             }
           },
           {
-            title:'库存地点',
+            title:'总金额',
             align:"center",
-            dataIndex: 'kcdd_dictText',
+            dataIndex: 'zongAmo'
           },
           {
-            title:'损益方式',
+            title:'收货时间',
             align:"center",
-            dataIndex: 'lossesType_dictText',
-          },
-          {
-            title:'录入完成时间',
-            align:"center",
-            dataIndex: 'finishTime'
-          },
-          {
-            title:'状态',
-            align:"center",
-            dataIndex: 'status_dictText',
-          },
-          {
-            title:'账面金额',
-            align:"center",
-            dataIndex: 'bookAmo'
-          },
-          {
-            title:'盘点金额',
-            align:"center",
-            dataIndex: 'eftAmo'
+            dataIndex: 'inDate'
           },
           {
             title: '操作',
@@ -187,31 +188,15 @@
           }
         ],
         url: {
-          list: "/inventory/pqCheckReport/list",
-          delete: "/inventory/pqCheckReport/delete",
-          deleteBatch: "/inventory/pqCheckReport/deleteBatch",
-          exportXlsUrl: "/inventory/pqCheckReport/exportXls",
-          importExcelUrl: "inventory/pqCheckReport/importExcel",
+          list: "/inventory/pqStockOrder/list",
+          delete: "/inventory/pqStockOrder/delete",
+          deleteBatch: "/inventory/pqStockOrder/deleteBatch",
+          exportXlsUrl: "/inventory/pqStockOrder/exportXls",
+          importExcelUrl: "inventory/pqStockOrder/importExcel",
+          auditUrl: "inventory/pqStockOrder/audit",
+          
         },
-        dictOptions:{
-         kcdd:[],
-         lossesType:[],
-         status:[],
-        },
-        /* 分页参数 */
-        ipagination:{
-          current: 1,
-          pageSize: 5,
-          pageSizeOptions: ['5', '10', '50'],
-          showTotal: (total, range) => {
-            return range[0] + "-" + range[1] + " 共" + total + "条"
-          },
-          showQuickJumper: true,
-          showSizeChanger: true,
-          total: 0
-        },
-        selectedMainId:''
-
+        dictOptions:{},
       }
     },
     created() {
@@ -223,68 +208,73 @@
     },
     methods: {
       initDictConfig(){
-        initDictOptions('pq_stroage_location,name,id').then((res) => {
-          if (res.success) {
-            this.$set(this.dictOptions, 'kcdd', res.result)
-          }
-        })
-        initDictOptions('pq_loss_type').then((res) => {
-          if (res.success) {
-            this.$set(this.dictOptions, 'lossesType', res.result)
-          }
-        })
-        initDictOptions('pq_check_report_status').then((res) => {
-          if (res.success) {
-            this.$set(this.dictOptions, 'status', res.result)
-          }
-        })
       },
-      clickThenSelect(record) {
-        return {
-          on: {
-            click: () => {
-              this.onSelectChange(record.id.split(","), [record]);
-            }
-          }
+       handleAudit(){
+        if(this.selectedRowKeys.length == 0){
+          this.$message.warning("请选择订单");
         }
-      },
-      onClearSelected() {
-        this.selectedRowKeys = [];
-        this.selectionRows = [];
-        this.selectedMainId=''
-      },
-      onSelectChange(selectedRowKeys, selectionRows) {
-        this.selectedMainId=selectedRowKeys[0]
-        this.selectedRowKeys = selectedRowKeys;
-        this.selectionRows = selectionRows;
-      },
-      loadData(arg) {
-        if(!this.url.list){
-          this.$message.error("请设置url.list属性!")
-          return
-        }
-        //加载数据 若传入参数1则加载第一页的内容
-        if (arg === 1) {
-          this.ipagination.current = 1;
-        }
-        this.onClearSelected()
-        var params = this.getQueryParams();//查询条件
-        this.loading = true;
-        getAction(this.url.list, params).then((res) => {
-          if (res.success) {
-            this.dataSource = res.result.records;
-            this.ipagination.total = res.result.total;
+        else{
+          
+          if(!this.url.auditUrl){
+            this.$message.error("请设置url.audit属性!")
+            return
           }
-          if(res.code===510){
-            this.$message.warning(res.message)
-          }
-          this.loading = false;
-        })
-      }
 
+          if( this.selectionRows[0].status == 1) {
+            this.$message.error("该订单已审核，请勿重复审核!")
+            return
+          }
+
+          getAction(this.url.auditUrl, {id: this.selectionRows[0].id}).then((res) => {
+          if (res.success) {
+            this.$message.success(res.result);
+            this.loadData();
+          } else {
+            this.$message.warning(res.message);
+          }
+          });
+
+        }
+    },
+
+      handleDeleteExt: function (id,status) {
+      if(!this.url.delete){
+        this.$message.error("请设置url.delete属性!")
+        return
+      }
+      if(status == 1) {
+        this.$message.error("该采购订单已审核，无法删除!")
+        return
+      }
+      var that = this;
+      deleteAction(that.url.delete, {id: id}).then((res) => {
+        if (res.success) {
+          that.$message.success(res.message);
+          that.loadData();
+        } else {
+          that.$message.warning(res.message);
+        }
+      });
+    },
+
+    handleEditExt: function (record) {
+
+      if(record.status == 1) {
+        this.$message.error("该采购订单已审核，无法编辑!")
+        return
+      }
+      this.$refs.modalForm.edit(record);
+      this.$refs.modalForm.title = "编辑";
+      this.$refs.modalForm.disableSubmit = false;
+    },
+
+
+
+
+       
     }
   }
 </script>
 <style scoped>
-  @import '~@assets/less/common.less'
+  @import '~@assets/less/common.less';
 </style>
