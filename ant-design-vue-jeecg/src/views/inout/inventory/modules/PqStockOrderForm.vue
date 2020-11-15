@@ -209,7 +209,7 @@
 
             {
               title: 'sku_id',
-              key: 'sku_id',
+              key: 'skuId',
               type:"hidden"
             },
 
@@ -326,7 +326,7 @@
         let canAdd = true;
         for (let x = 0; x < oldRows.length; x++) {
           const element = oldRows[x];   
-          if(r.sku_id == element.sku_id){
+          if(r.sku_id == element.skuId){
             canAdd = false;
             break;
           }
@@ -350,7 +350,7 @@
           values:  {
             'skuName': one.sku_name,
             'specsVal': one.specs_val,
-            'sku_id': one.sku_id,
+            'skuId': one.sku_id,
             'jxsl': one.jxsl,
             'inPrice': one.in_price
           }}]
