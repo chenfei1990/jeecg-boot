@@ -558,11 +558,11 @@
                 specs.push(sku.v);
               }
               let skname = this.form.getFieldValue('name');
-              skname = skname + '（' + specs.join('，') + '）';
+              skname = skname + '-' + specs.join('-');
               r.name = skname; //sku名称
-              r.specsVal = specs.join(',');
+              r.specsVal = specs.join('-');
               this.pqGoodsSkuTable.dataSource.push(r); // 直接加就能显示
-                        
+                      
           }
 
       },
@@ -698,7 +698,7 @@
       editShowVal(res) {
         this.selectProductParam = [];
           const valList = res.result;
-          // debugger;
+        
           if(valList.length > 0) {
 
             for (let i = 0; i < valList.length; i++) {

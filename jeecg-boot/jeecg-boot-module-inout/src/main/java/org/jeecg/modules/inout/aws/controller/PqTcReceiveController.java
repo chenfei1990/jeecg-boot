@@ -1,4 +1,4 @@
-package org.jeecg.modules.inout.inventory.controller;
+package org.jeecg.modules.inout.aws.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.io.IOException;
@@ -21,11 +21,11 @@ import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.util.oConvertUtils;
-import org.jeecg.modules.inout.inventory.entity.PqStockOrderSku;
-import org.jeecg.modules.inout.inventory.entity.PqStockOrder;
-import org.jeecg.modules.inout.inventory.vo.PqStockOrderPage;
-import org.jeecg.modules.inout.inventory.service.IPqStockOrderService;
-import org.jeecg.modules.inout.inventory.service.IPqStockOrderSkuService;
+import org.jeecg.modules.inout.aws.entity.PqTcReceiveSku;
+import org.jeecg.modules.inout.aws.entity.PqTcReceive;
+import org.jeecg.modules.inout.aws.vo.PqTcReceivePage;
+import org.jeecg.modules.inout.aws.service.IPqTcReceiveService;
+import org.jeecg.modules.inout.aws.service.IPqTcReceiveSkuService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,76 +43,76 @@ import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.aspect.annotation.AutoLog;
 
  /**
- * @Description: 采购订单
+ * @Description: 头程到货
  * @Author: jeecg-boot
- * @Date:   2020-11-14
+ * @Date:   2020-11-22
  * @Version: V1.0
  */
-@Api(tags="采购订单")
+@Api(tags="头程到货")
 @RestController
-@RequestMapping("/inventory/pqStockOrder")
+@RequestMapping("/aws/pqTcReceive")
 @Slf4j
-public class PqStockOrderController {
+public class PqTcReceiveController {
 	@Autowired
-	private IPqStockOrderService pqStockOrderService;
+	private IPqTcReceiveService pqTcReceiveService;
 	@Autowired
-	private IPqStockOrderSkuService pqStockOrderSkuService;
+	private IPqTcReceiveSkuService pqTcReceiveSkuService;
 	
 	/**
 	 * 分页列表查询
 	 *
-	 * @param pqStockOrder
+	 * @param pqTcReceive
 	 * @param pageNo
 	 * @param pageSize
 	 * @param req
 	 * @return
 	 */
-	@AutoLog(value = "采购订单-分页列表查询")
-	@ApiOperation(value="采购订单-分页列表查询", notes="采购订单-分页列表查询")
+	@AutoLog(value = "头程到货-分页列表查询")
+	@ApiOperation(value="头程到货-分页列表查询", notes="头程到货-分页列表查询")
 	@GetMapping(value = "/list")
-	public Result<?> queryPageList(PqStockOrder pqStockOrder,
+	public Result<?> queryPageList(PqTcReceive pqTcReceive,
 								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
 								   HttpServletRequest req) {
-		QueryWrapper<PqStockOrder> queryWrapper = QueryGenerator.initQueryWrapper(pqStockOrder, req.getParameterMap());
-		Page<PqStockOrder> page = new Page<PqStockOrder>(pageNo, pageSize);
-		IPage<PqStockOrder> pageList = pqStockOrderService.page(page, queryWrapper);
+		QueryWrapper<PqTcReceive> queryWrapper = QueryGenerator.initQueryWrapper(pqTcReceive, req.getParameterMap());
+		Page<PqTcReceive> page = new Page<PqTcReceive>(pageNo, pageSize);
+		IPage<PqTcReceive> pageList = pqTcReceiveService.page(page, queryWrapper);
 		return Result.OK(pageList);
 	}
 	
 	/**
 	 *   添加
 	 *
-	 * @param pqStockOrderPage
+	 * @param pqTcReceivePage
 	 * @return
 	 */
-	@AutoLog(value = "采购订单-添加")
-	@ApiOperation(value="采购订单-添加", notes="采购订单-添加")
+	@AutoLog(value = "头程到货-添加")
+	@ApiOperation(value="头程到货-添加", notes="头程到货-添加")
 	@PostMapping(value = "/add")
-	public Result<?> add(@RequestBody PqStockOrderPage pqStockOrderPage) {
-		PqStockOrder pqStockOrder = new PqStockOrder();
-		BeanUtils.copyProperties(pqStockOrderPage, pqStockOrder);
-		pqStockOrderService.saveMain(pqStockOrder, pqStockOrderPage.getPqStockOrderSkuList());
+	public Result<?> add(@RequestBody PqTcReceivePage pqTcReceivePage) {
+		PqTcReceive pqTcReceive = new PqTcReceive();
+		BeanUtils.copyProperties(pqTcReceivePage, pqTcReceive);
+		pqTcReceiveService.saveMain(pqTcReceive, pqTcReceivePage.getPqTcReceiveSkuList());
 		return Result.OK("添加成功！");
 	}
 	
 	/**
 	 *  编辑
 	 *
-	 * @param pqStockOrderPage
+	 * @param pqTcReceivePage
 	 * @return
 	 */
-	@AutoLog(value = "采购订单-编辑")
-	@ApiOperation(value="采购订单-编辑", notes="采购订单-编辑")
+	@AutoLog(value = "头程到货-编辑")
+	@ApiOperation(value="头程到货-编辑", notes="头程到货-编辑")
 	@PutMapping(value = "/edit")
-	public Result<?> edit(@RequestBody PqStockOrderPage pqStockOrderPage) {
-		PqStockOrder pqStockOrder = new PqStockOrder();
-		BeanUtils.copyProperties(pqStockOrderPage, pqStockOrder);
-		PqStockOrder pqStockOrderEntity = pqStockOrderService.getById(pqStockOrder.getId());
-		if(pqStockOrderEntity==null) {
+	public Result<?> edit(@RequestBody PqTcReceivePage pqTcReceivePage) {
+		PqTcReceive pqTcReceive = new PqTcReceive();
+		BeanUtils.copyProperties(pqTcReceivePage, pqTcReceive);
+		PqTcReceive pqTcReceiveEntity = pqTcReceiveService.getById(pqTcReceive.getId());
+		if(pqTcReceiveEntity==null) {
 			return Result.error("未找到对应数据");
 		}
-		pqStockOrderService.updateMain(pqStockOrder, pqStockOrderPage.getPqStockOrderSkuList());
+		pqTcReceiveService.updateMain(pqTcReceive, pqTcReceivePage.getPqTcReceiveSkuList());
 		return Result.OK("编辑成功!");
 	}
 	
@@ -122,11 +122,11 @@ public class PqStockOrderController {
 	 * @param id
 	 * @return
 	 */
-	@AutoLog(value = "采购订单-通过id删除")
-	@ApiOperation(value="采购订单-通过id删除", notes="采购订单-通过id删除")
+	@AutoLog(value = "头程到货-通过id删除")
+	@ApiOperation(value="头程到货-通过id删除", notes="头程到货-通过id删除")
 	@DeleteMapping(value = "/delete")
 	public Result<?> delete(@RequestParam(name="id",required=true) String id) {
-		pqStockOrderService.delMain(id);
+		pqTcReceiveService.delMain(id);
 		return Result.OK("删除成功!");
 	}
 	
@@ -136,11 +136,11 @@ public class PqStockOrderController {
 	 * @param ids
 	 * @return
 	 */
-	@AutoLog(value = "采购订单-批量删除")
-	@ApiOperation(value="采购订单-批量删除", notes="采购订单-批量删除")
+	@AutoLog(value = "头程到货-批量删除")
+	@ApiOperation(value="头程到货-批量删除", notes="头程到货-批量删除")
 	@DeleteMapping(value = "/deleteBatch")
 	public Result<?> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		this.pqStockOrderService.delBatchMain(Arrays.asList(ids.split(",")));
+		this.pqTcReceiveService.delBatchMain(Arrays.asList(ids.split(",")));
 		return Result.OK("批量删除成功！");
 	}
 	
@@ -150,15 +150,15 @@ public class PqStockOrderController {
 	 * @param id
 	 * @return
 	 */
-	@AutoLog(value = "采购订单-通过id查询")
-	@ApiOperation(value="采购订单-通过id查询", notes="采购订单-通过id查询")
+	@AutoLog(value = "头程到货-通过id查询")
+	@ApiOperation(value="头程到货-通过id查询", notes="头程到货-通过id查询")
 	@GetMapping(value = "/queryById")
 	public Result<?> queryById(@RequestParam(name="id",required=true) String id) {
-		PqStockOrder pqStockOrder = pqStockOrderService.getById(id);
-		if(pqStockOrder==null) {
+		PqTcReceive pqTcReceive = pqTcReceiveService.getById(id);
+		if(pqTcReceive==null) {
 			return Result.error("未找到对应数据");
 		}
-		return Result.OK(pqStockOrder);
+		return Result.OK(pqTcReceive);
 
 	}
 	
@@ -168,44 +168,29 @@ public class PqStockOrderController {
 	 * @param id
 	 * @return
 	 */
-	@AutoLog(value = "采购订单商品通过主表ID查询")
-	@ApiOperation(value="采购订单商品主表ID查询", notes="采购订单商品-通主表ID查询")
-	@GetMapping(value = "/queryPqStockOrderSkuByMainId")
-	public Result<?> queryPqStockOrderSkuListByMainId(@RequestParam(name="id",required=true) String id) {
-		List<PqStockOrderSku> pqStockOrderSkuList = pqStockOrderSkuService.selectByMainId(id);
-		return Result.OK(pqStockOrderSkuList);
+	@AutoLog(value = "到货商品明细通过主表ID查询")
+	@ApiOperation(value="到货商品明细主表ID查询", notes="到货商品明细-通主表ID查询")
+	@GetMapping(value = "/queryPqTcReceiveSkuByMainId")
+	public Result<?> queryPqTcReceiveSkuListByMainId(@RequestParam(name="id",required=true) String id) {
+		List<PqTcReceiveSku> pqTcReceiveSkuList = pqTcReceiveSkuService.selectByMainId(id);
+		return Result.OK(pqTcReceiveSkuList);
 	}
 
-	 @AutoLog(value = "采购订单-通过id审核")
-	 @ApiOperation(value="采购订单-通过id审核", notes="采购订单-通过id审核")
+
+
+	 @AutoLog(value = "头程到货-通过id审核")
+	 @ApiOperation(value="头程到货-通过id审核", notes="头程到货-通过id审核")
 	 @GetMapping(value = "/audit")
 	 @Transactional
 	 public Result<?> audit(@RequestParam(name="id",required=true) String id) {
-		 //pqCheckReportService.delMain(id);
+
 		 OnlCgformFieldMapper onlCgformFieldMapper = SpringContextUtils.getBean(OnlCgformFieldMapper.class);
 		 Map<String,Object> params = new HashMap<>();
-		 String sql = " call stockorder_audit(#{p_id,jdbcType=VARCHAR})";
+		 String sql = " call tc_receive_audit(#{p_id,jdbcType=VARCHAR})";
 		 params.put("execute_sql_string",sql);
 		 params.put("p_id",id);
 		 onlCgformFieldMapper.executeUpdatetSQL(params);
-		 return Result.OK("审核完成!");
-
-	 }
-
-
-	 @AutoLog(value = "打包审核-通过id审核")
-	 @ApiOperation(value="打包审核-通过id审核", notes="打包审核-通过id审核")
-	 @GetMapping(value = "/packAudit")
-	 @Transactional
-	 public Result<?> packAudit(@RequestParam(name="id",required=true) String id) {
-		 //pqCheckReportService.delMain(id);
-		 OnlCgformFieldMapper onlCgformFieldMapper = SpringContextUtils.getBean(OnlCgformFieldMapper.class);
-		 Map<String,Object> params = new HashMap<>();
-		 String sql = " call out_pack_audit(#{p_id,jdbcType=VARCHAR})";
-		 params.put("execute_sql_string",sql);
-		 params.put("p_id",id);
-		 onlCgformFieldMapper.executeUpdatetSQL(params);
-		 return Result.OK("审核完成!");
+		 return Result.OK("确认完成!");
 
 	 }
 
@@ -213,41 +198,41 @@ public class PqStockOrderController {
     * 导出excel
     *
     * @param request
-    * @param pqStockOrder
+    * @param pqTcReceive
     */
     @RequestMapping(value = "/exportXls")
-    public ModelAndView exportXls(HttpServletRequest request, PqStockOrder pqStockOrder) {
+    public ModelAndView exportXls(HttpServletRequest request, PqTcReceive pqTcReceive) {
       // Step.1 组装查询条件查询数据
-      QueryWrapper<PqStockOrder> queryWrapper = QueryGenerator.initQueryWrapper(pqStockOrder, request.getParameterMap());
+      QueryWrapper<PqTcReceive> queryWrapper = QueryGenerator.initQueryWrapper(pqTcReceive, request.getParameterMap());
       LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
 
       //Step.2 获取导出数据
-      List<PqStockOrder> queryList = pqStockOrderService.list(queryWrapper);
+      List<PqTcReceive> queryList = pqTcReceiveService.list(queryWrapper);
       // 过滤选中数据
       String selections = request.getParameter("selections");
-      List<PqStockOrder> pqStockOrderList = new ArrayList<PqStockOrder>();
+      List<PqTcReceive> pqTcReceiveList = new ArrayList<PqTcReceive>();
       if(oConvertUtils.isEmpty(selections)) {
-          pqStockOrderList = queryList;
+          pqTcReceiveList = queryList;
       }else {
           List<String> selectionList = Arrays.asList(selections.split(","));
-          pqStockOrderList = queryList.stream().filter(item -> selectionList.contains(item.getId())).collect(Collectors.toList());
+          pqTcReceiveList = queryList.stream().filter(item -> selectionList.contains(item.getId())).collect(Collectors.toList());
       }
 
       // Step.3 组装pageList
-      List<PqStockOrderPage> pageList = new ArrayList<PqStockOrderPage>();
-      for (PqStockOrder main : pqStockOrderList) {
-          PqStockOrderPage vo = new PqStockOrderPage();
+      List<PqTcReceivePage> pageList = new ArrayList<PqTcReceivePage>();
+      for (PqTcReceive main : pqTcReceiveList) {
+          PqTcReceivePage vo = new PqTcReceivePage();
           BeanUtils.copyProperties(main, vo);
-          List<PqStockOrderSku> pqStockOrderSkuList = pqStockOrderSkuService.selectByMainId(main.getId());
-          vo.setPqStockOrderSkuList(pqStockOrderSkuList);
+          List<PqTcReceiveSku> pqTcReceiveSkuList = pqTcReceiveSkuService.selectByMainId(main.getId());
+          vo.setPqTcReceiveSkuList(pqTcReceiveSkuList);
           pageList.add(vo);
       }
 
       // Step.4 AutoPoi 导出Excel
       ModelAndView mv = new ModelAndView(new JeecgEntityExcelView());
-      mv.addObject(NormalExcelConstants.FILE_NAME, "采购订单列表");
-      mv.addObject(NormalExcelConstants.CLASS, PqStockOrderPage.class);
-      mv.addObject(NormalExcelConstants.PARAMS, new ExportParams("采购订单数据", "导出人:"+sysUser.getRealname(), "采购订单"));
+      mv.addObject(NormalExcelConstants.FILE_NAME, "头程到货列表");
+      mv.addObject(NormalExcelConstants.CLASS, PqTcReceivePage.class);
+      mv.addObject(NormalExcelConstants.PARAMS, new ExportParams("头程到货数据", "导出人:"+sysUser.getRealname(), "头程到货"));
       mv.addObject(NormalExcelConstants.DATA_LIST, pageList);
       return mv;
     }
@@ -270,11 +255,11 @@ public class PqStockOrderController {
           params.setHeadRows(1);
           params.setNeedSave(true);
           try {
-              List<PqStockOrderPage> list = ExcelImportUtil.importExcel(file.getInputStream(), PqStockOrderPage.class, params);
-              for (PqStockOrderPage page : list) {
-                  PqStockOrder po = new PqStockOrder();
+              List<PqTcReceivePage> list = ExcelImportUtil.importExcel(file.getInputStream(), PqTcReceivePage.class, params);
+              for (PqTcReceivePage page : list) {
+                  PqTcReceive po = new PqTcReceive();
                   BeanUtils.copyProperties(page, po);
-                  pqStockOrderService.saveMain(po, page.getPqStockOrderSkuList());
+                  pqTcReceiveService.saveMain(po, page.getPqTcReceiveSkuList());
               }
               return Result.OK("文件导入成功！数据行数:" + list.size());
           } catch (Exception e) {

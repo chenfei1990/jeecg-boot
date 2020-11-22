@@ -309,6 +309,7 @@
     openSkuRp() {
       //打开online报表   
       this.$refs.SkuRp.show()   
+      this.$refs.SkuRp.loadData(1) 
     },
 
     addSkuRow(rows) {
@@ -319,7 +320,7 @@
 
       // union key
       let oldRows = this.$refs.pqStockOrderSku.getValuesSync().values;
-      debugger;
+    
 
       for (let j = 0; j < rows.length; j++) {
         const r = rows[j];

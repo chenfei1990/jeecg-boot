@@ -4,6 +4,7 @@ import io.lettuce.core.RedisConnectionException;
 import org.apache.shiro.authz.AuthorizationException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.jeecg.common.api.vo.Result;
+import org.jeecg.modules.online.config.exception.BusinessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.connection.PoolException;
@@ -14,6 +15,8 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.sql.SQLException;
 
 /**
  * 异常处理器
@@ -57,7 +60,6 @@ public class JeecgBootExceptionHandler {
 		log.error(e.getMessage(), e);
 		return Result.error("操作失败，"+e.getMessage());
 	}
-	
 	/**
 	 * @Author 政辉
 	 * @param e
@@ -94,7 +96,7 @@ public class JeecgBootExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public Result<?> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
     	log.error(e.getMessage(), e);
-        return Result.error("字段太长,超出数据库字段的长度");
+        return Result.error(e.getCause().getMessage());
     }
 
     @ExceptionHandler(PoolException.class)

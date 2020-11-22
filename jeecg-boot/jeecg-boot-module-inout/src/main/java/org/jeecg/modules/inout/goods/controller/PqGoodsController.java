@@ -3,12 +3,16 @@ package org.jeecg.modules.inout.goods.controller;
 import java.io.UnsupportedEncodingException;
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.SQLNonTransientException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.val;
 import org.jeecg.common.util.SpringContextUtils;
 import org.jeecg.modules.online.cgform.mapper.OnlCgformFieldMapper;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
@@ -30,6 +34,7 @@ import org.jeecg.modules.inout.goods.service.IPqGoodsSkuService;
 import org.jeecg.modules.inout.goods.service.IPqProductAttributeValueService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.multipart.MultipartFile;
@@ -201,15 +206,20 @@ public class PqGoodsController {
 	 @AutoLog(value = "商品定义-通过id审核")
 	 @ApiOperation(value="商品定义-通过id审核", notes="商品定义-通过id审核")
 	 @GetMapping(value = "/audit")
-	 public Result<?> audit(@RequestParam(name="id",required=true) String id) {
+	 @Transactional
+	 public Result<?> audit(@RequestParam(name="id",required=true) String id){
 		 //pqCheckReportService.delMain(id);
-		 OnlCgformFieldMapper onlCgformFieldMapper = SpringContextUtils.getBean(OnlCgformFieldMapper.class);
-		 Map<String,Object> params = new HashMap<>();
-		 String sql = " call goods_audit(#{p_id,jdbcType=VARCHAR})";
-		 params.put("execute_sql_string",sql);
-		 params.put("p_id",id);
-		 onlCgformFieldMapper.executeUpdatetSQL(params);
-		 return Result.OK("审核完成!");
+//		 try{
+			 OnlCgformFieldMapper onlCgformFieldMapper = SpringContextUtils.getBean(OnlCgformFieldMapper.class);
+			 Map<String,Object> params = new HashMap<>();
+			 String sql = " call goods_audit(#{p_id,jdbcType=VARCHAR})";
+			 params.put("execute_sql_string",sql);
+			 params.put("p_id",id);
+			 onlCgformFieldMapper.executeUpdatetSQL(params);
+			 return Result.OK("审核完成!");
+//		 } catch (Exception e)  {
+//		 	return Result.OK(e.getCause().getMessage());
+//		 }
 
 	 }
 

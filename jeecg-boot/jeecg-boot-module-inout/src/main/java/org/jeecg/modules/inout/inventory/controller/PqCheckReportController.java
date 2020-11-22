@@ -10,6 +10,7 @@ import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.util.SpringContextUtils;
 import org.jeecg.modules.online.cgform.mapper.OnlCgformFieldMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -127,6 +128,7 @@ public class PqCheckReportController extends JeecgController<PqCheckReport, IPqC
 	 @AutoLog(value = "盘点报告-通过id完成录入")
 	 @ApiOperation(value="盘点报告-通过id完成录入", notes="盘点报告-通过id完成录入")
 	 @GetMapping(value = "/finishWrite")
+	 @Transactional
 	 public Result<?> finishWrite(@RequestParam(name="id",required=true) String id) {
 		 //pqCheckReportService.delMain(id);
 		 OnlCgformFieldMapper onlCgformFieldMapper = SpringContextUtils.getBean(OnlCgformFieldMapper.class);
@@ -147,6 +149,7 @@ public class PqCheckReportController extends JeecgController<PqCheckReport, IPqC
 	 @AutoLog(value = "盘点报告-通过id审核")
 	 @ApiOperation(value="盘点报告-通过id审核", notes="盘点报告-通过id审核")
 	 @GetMapping(value = "/audit")
+	 @Transactional
 	 public Result<?> audit(@RequestParam(name="id",required=true) String id) {
 		 //pqCheckReportService.delMain(id);
 		 OnlCgformFieldMapper onlCgformFieldMapper = SpringContextUtils.getBean(OnlCgformFieldMapper.class);
